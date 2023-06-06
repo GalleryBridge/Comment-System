@@ -1,0 +1,11 @@
+application:
+    name: hmdp
+  datasource:
+    driver-class-name: com.mysql.jdbc.Driver
+    url: jdbc:mysql://127.0.0.1:3306/hmdp?useSSL=false&serverTimezone=UTC
+    username: root
+    password: 123
+  redis:
+    host: 192.168.150.101
+    port: 6379
+    password: 123321
