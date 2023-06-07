@@ -63,7 +63,8 @@ public class UserController {
     @GetMapping("/me")
     public Result me(){
         // TODO 获取当前登录的用户并返回
-        return Result.fail("功能未完成");
+//        return Result.fail("功能未完成");
+        return Result.ok();
     }
 
     @GetMapping("/info/{id}")
