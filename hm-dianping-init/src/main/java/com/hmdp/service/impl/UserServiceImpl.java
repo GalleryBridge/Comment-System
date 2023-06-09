@@ -44,6 +44,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
 
     @Override
     public Result login(LoginFormDTO loginForm, HttpSession session) {
+        System.out.println("开始执行login方法");
         //  校验手机号
         String phone = loginForm.getPhone();
         if (RegexUtils.isPhoneInvalid(phone)) {
@@ -56,6 +57,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
         if (cacheCode == null || !cacheCode.toString().equals(code)){
             return Result.fail("验证码错误");
         }
+        System.out.println("验证码校验完成");
         //  验证码正确 根据手机查询用户
         User user = query().eq("phone", phone).one();
         //  判断用户是否存在
@@ -66,6 +68,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
 
         //  保存用户信息到session中
         session.setAttribute("user",user);
+        System.out.println("方法执行结束");
         return Result.ok();
     }
 
