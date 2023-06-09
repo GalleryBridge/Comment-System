@@ -2,7 +2,7 @@
 let commonURL = "/api";
 // 设置后台服务地址
 axios.defaults.baseURL = commonURL;
-axios.defaults.timeout = 2000;
+axios.defaults.timeout = 50000;
 // request拦截器，将用户token放入头中
 let token = sessionStorage.getItem("token");
 axios.interceptors.request.use(
@@ -28,7 +28,7 @@ axios.interceptors.response.use(function (response) {
     // 未登录，跳转
     setTimeout(() => {
       location.href = "/login.html"
-    }, 200);
+    }, 2000);
     return Promise.reject("请先登录");
   }
   return Promise.reject("服务器异常");
