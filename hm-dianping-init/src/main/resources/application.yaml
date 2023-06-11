@@ -11,7 +11,7 @@ spring:
   redis:
     host: 8.139.7.184
     port: 6379
-    password: 001011
+    password: "001011"    # 要用英文引号
     lettuce:
       pool:
         max-active: 10
