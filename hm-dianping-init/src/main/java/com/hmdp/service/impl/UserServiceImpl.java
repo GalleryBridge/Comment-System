@@ -13,11 +13,7 @@ import com.hmdp.mapper.UserMapper;
 import com.hmdp.service.IUserService;
 import com.hmdp.utils.RegexUtils;
 import lombok.extern.slf4j.Slf4j;
-import org.junit.Test;
-import org.springframework.context.annotation.Bean;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
-import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -85,7 +81,6 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
         }
         //  TODO 保存用户信息到Redis中
         String token = UUID.randomUUID().toString(true);
-        System.out.println(token);
         //  TODO 将User对象转为HashMap存储
         UserDTO userDTO = BeanUtil.copyProperties(user,UserDTO.class);
         Map<String, Object> userMap = BeanUtil.beanToMap(userDTO,new HashMap<>(),
@@ -97,13 +92,14 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
         stringRedisTemplate.opsForHash().putAll(tokenKey, userMap);
         //  TODO 设置有效期
         stringRedisTemplate.expire(tokenKey,LOGIN_USER_TTL,TimeUnit.MINUTES);
-        return Result.ok();
+        return Result.ok(token);
     }
 
     private User createUserWithPhone(String phone){
         //  创建user对象 填充非空属性
         User user = new User();
         user.setPhone(phone);
+        //  生成随你昵称
         user.setNickName(USER_NICK_NAME_PREFIX + RandomUtil.randomString(10));
         //  保存到数据库
         save(user);

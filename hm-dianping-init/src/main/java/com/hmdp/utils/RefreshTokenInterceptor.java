@@ -17,13 +17,12 @@ public class RefreshTokenInterceptor implements HandlerInterceptor {
     private StringRedisTemplate stringRedisTemplate;
 
     public RefreshTokenInterceptor(StringRedisTemplate stringRedisTemplate) {
-
+        this.stringRedisTemplate = stringRedisTemplate;
     }
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
         //  TODO 获取请求头中的参数
-        String token = request.getHeader("authorization");
-        System.out.println(token);
+        String token = request.getHeader("Authorization");
         //  TODO 基于TOKEN获取Redis中的用户
         if (StrUtil.isBlank(token)) {
             return true;
@@ -34,9 +33,10 @@ public class RefreshTokenInterceptor implements HandlerInterceptor {
             return true;
         }
         //  将查询到的Hash数据转为UserDTO对象
-        UserDTO userDTO = BeanUtil.fillBeanWithMap(userMap, new UserDTO(), false);
+//        UserDTO userDTO = BeanUtil.fillBeanWithMap(userMap, new UserDTO(), false);
         //  保存用户信息到ThreadLocal
-        UserHolder.saveUser(userDTO);
+//        UserHolder.saveUser(userDTO);
+        UserHolder.saveUser(BeanUtil.fillBeanWithMap(userMap, new UserDTO(), false));
         //  刷新Token有效期
         stringRedisTemplate.expire(key, RedisConstants.LOGIN_USER_TTL, TimeUnit.MINUTES);
         //  放行

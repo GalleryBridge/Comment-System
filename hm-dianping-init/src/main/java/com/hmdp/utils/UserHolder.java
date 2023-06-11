@@ -1,6 +1,5 @@
 package com.hmdp.utils;
 
-
 import com.hmdp.dto.UserDTO;
 
 public class UserHolder {
@@ -10,7 +9,7 @@ public class UserHolder {
         tl.set(user);
     }
 
-    public static UserDTO getUser(){
+    public static UserDTO  getUser(){
         return tl.get();
     }
 
