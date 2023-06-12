@@ -6,11 +6,11 @@
 ```git
 git checkout init
 ```
-## 项目架构
+### 架构
 
 ![image-20230610113419807](G:\Project\Commont\Comment-System\hm-dianping-init\README.assets\image-20230610113419807.png)
 
-## 短信登录
+### 短信登录
 
 ### 集群Session的共享问题
 多台Tomcat并不共享Session存储空间, 当请求切换到不同的Tomcat服务器时会导致数据丢失
@@ -20,3 +20,14 @@ Session的替代方案应该满足
 - key、 value结构
 
 所以将验证信息保存在Redis中 以Token为key值 user对象为value
+
+### 商户查询缓存
+
+<b>包括技术<b/>
+
+- 添加Redis缓存
+- 缓存更新策略
+- 缓存穿透
+- 缓存雪崩
+- 缓存击穿
+- 缓存工具封装  
