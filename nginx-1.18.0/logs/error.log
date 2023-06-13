@@ -1,0 +1,4 @@
+2023/06/14 00:14:50 [notice] 7740#10904: signal process started
+2023/06/14 00:18:58 [notice] 3300#2456: signal process started
+2023/06/14 00:18:58 [error] 3300#2456: CreateFile() "G:\Project\Commont\Comment-System\nginx-1.18.0/logs/nginx.pid" failed (2: The system cannot find the file specified)
+2023/06/14 00:19:14 [notice] 9380#6840: signal process started

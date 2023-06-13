@@ -9,12 +9,15 @@ import com.hmdp.entity.Shop;
 import com.hmdp.mapper.ShopMapper;
 import com.hmdp.service.IShopService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.hmdp.utils.CacheClient;
 import com.hmdp.utils.RedisData;
+import org.junit.Test;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
+import javax.management.timer.TimerMBean;
 
 import java.time.LocalDateTime;
 import java.util.concurrent.ExecutorService;
@@ -37,16 +40,23 @@ public class ShopServiceImpl extends ServiceImpl<ShopMapper, Shop> implements IS
     @Resource
     StringRedisTemplate stringRedisTemplate;
 
+    //  使用工具类
+    @Resource
+    private CacheClient cacheClient;
+
     @Override
     public Result queryByID(Long id) {
         //  缓存穿透
 //        Shop shop = queryWithPassThrough(id);
+        //  TODO 工具类有Bug 没找
+//        Shop shop = cacheClient.queryWithPassThrough(CACHE_SHOP_KEY, id, Shop.class, this::getById, CACHE_SHOP_TTL, TimeUnit.MINUTES);
 
         //  互斥锁解决缓存击穿
 //        Shop shop = queryWithMutex(id);
 
-        //  逻辑过期解决缓存击穿
+        //  逻辑过期解决缓存击穿  ** 需要先缓存预热 就是提前缓存好 在Test文件夹下**
         Shop shop = queryWithLogicalExpire(id);
+        System.out.println("商品实现类中调用方法返回的商品数据"+shop);
         if (shop == null) {
             Result.fail("店铺不存在!");
         }
@@ -149,6 +159,7 @@ public class ShopServiceImpl extends ServiceImpl<ShopMapper, Shop> implements IS
     }
 
     //  逻辑过期时间 重建缓存
+    //  没有传过期时间 永久有效
     public void saveShop2Redis(Long id,Long expireSecond){
         //  查询商铺信息
         Shop shop = getById(id);
@@ -160,7 +171,7 @@ public class ShopServiceImpl extends ServiceImpl<ShopMapper, Shop> implements IS
         stringRedisTemplate.opsForValue().set(CACHE_SHOP_KEY+id,JSONUtil.toJsonStr(redisData));
     }
 
-    //  缓存穿透
+    //  缓存穿透    使用工具类后 下面代码就可以删除了
     public Shop queryWithPassThrough(Long id){
         //  从Redis中查询缓存
         String shopJson = stringRedisTemplate.opsForValue().get(CACHE_SHOP_KEY + id);
