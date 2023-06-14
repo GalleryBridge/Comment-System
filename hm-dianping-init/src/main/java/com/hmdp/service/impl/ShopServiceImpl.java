@@ -52,11 +52,11 @@ public class ShopServiceImpl extends ServiceImpl<ShopMapper, Shop> implements IS
 //        Shop shop = cacheClient.queryWithPassThrough(CACHE_SHOP_KEY, id, Shop.class, this::getById, CACHE_SHOP_TTL, TimeUnit.MINUTES);
 
         //  互斥锁解决缓存击穿
-//        Shop shop = queryWithMutex(id);
+        Shop shop = queryWithMutex(id);
 
         //  逻辑过期解决缓存击穿  ** 需要先缓存预热 就是提前缓存好 在Test文件夹下**
-        Shop shop = queryWithLogicalExpire(id);
-        System.out.println("商品实现类中调用方法返回的商品数据"+shop);
+//        Shop shop = queryWithLogicalExpire(id);
+//        System.out.println("商品实现类中调用方法返回的商品数据"+shop);
         if (shop == null) {
             Result.fail("店铺不存在!");
         }
