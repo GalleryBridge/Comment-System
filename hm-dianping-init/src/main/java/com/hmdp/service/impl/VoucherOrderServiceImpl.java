@@ -12,13 +12,18 @@ import com.hmdp.utils.SimpleRedisLock;
 import com.hmdp.utils.UserHolder;
 import jdk.jfr.consumer.RecordedThread;
 import org.apache.ibatis.mapping.ResultFlag;
+import org.redisson.api.RLock;
+import org.redisson.api.RedissonClient;
 import org.springframework.aop.framework.AopContext;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import java.time.LocalDateTime;
+import java.util.Collections;
 
 /**
  * <p>
@@ -37,7 +42,42 @@ public class VoucherOrderServiceImpl extends ServiceImpl<VoucherOrderMapper, Vou
     @Resource
     private RedisIDWorker redisIDWorker;
 
+    @Resource
+    private RedissonClient redissonClient;
+
+    public static final DefaultRedisScript<Long> SECKILL_SCRIPT;
+    static {
+        SECKILL_SCRIPT = new DefaultRedisScript<>();
+        SECKILL_SCRIPT.setLocation(new ClassPathResource("seckill.lua"));
+        SECKILL_SCRIPT.setResultType(Long.class);
+    }
+
     @Override
+    public Result seckillVoucher(Long voucherID) {
+        //  获取用户
+        Long userID = UserHolder.getUser().getId();
+        //  执行Lua脚本
+        Long result = stringRedisTemplate.execute(
+                SECKILL_SCRIPT,
+                Collections.emptyList(),
+                voucherID.toString(), userID.toString()
+        );
+        int r = result.intValue();
+        //  判断结果为0
+        if (r != 0) {
+            //  不为0 但没有购买资格
+            return Result.fail(r == 1 ? "库存不足" : "不能重复下单");
+        }
+        //  为0 有购买资格 把下单信息保存到阻塞队列
+        long orderID = redisIDWorker.nextID("order");
+        //  TODO 保存阻塞队列
+
+        //  返回订单ID
+        return Result.ok(orderID);
+    }
+
+    /*
+    //  下面是没有使用lua脚本的业务代码
     public Result seckillVoucher(Long voucherID) {
         //  查询优惠券
         SeckillVoucher voucher = seckillVoucherService.getById(voucherID);
@@ -60,9 +100,10 @@ public class VoucherOrderServiceImpl extends ServiceImpl<VoucherOrderMapper, Vou
 
         Long userID = UserHolder.getUser().getId();
         //  创建锁对象
-        SimpleRedisLock lock = new SimpleRedisLock(stringRedisTemplate, "oring:" + userID);
+//        SimpleRedisLock lock = new SimpleRedisLock(stringRedisTemplate, "lock:order:" + userID);
+        RLock lock = redissonClient.getLock("lock:order:" + userID);
         //  尝试获取锁
-        boolean isLock = lock.tryLock(1200);
+        boolean isLock = lock.tryLock();
         if (!isLock) {
             //  获取失败
             return Result.fail("一个人只允许下一单");
@@ -85,14 +126,13 @@ public class VoucherOrderServiceImpl extends ServiceImpl<VoucherOrderMapper, Vou
          *       使用接口 AopContext.currentProxy() 获取代理对象
          *       ** 补习Spring 事务 **
          */
-      /*  Long userID = UserHolder.getUser().getId();
+        /*  Long userID = UserHolder.getUser().getId();
         synchronized (userID.toString().intern()) {
             //  获取代理对象 (事务)
             IVoucherOrderService proxy = (IVoucherOrderService) AopContext.currentProxy();
             return proxy.createVoucherOrder(voucherID);
         }*/
-    }
-
+//    */
     @Transactional  //  加上这个出现问题会回滚
     public Result createVoucherOrder(Long voucherID) {
         //  一人一单
