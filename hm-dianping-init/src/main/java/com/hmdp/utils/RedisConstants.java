@@ -23,6 +23,7 @@ public class RedisConstants {
     public static final String ID_PREFIX = UUID.randomUUID().toString(true) + "-";
 
     public static final String SECKILL_STOCK_KEY = "seckill:stock:";
+    public static final String FOLLOWS_KEY = "follows:";
     public static final String BLOG_LIKED_KEY = "blog:liked:";
     public static final String FEED_KEY = "feed:";
     public static final String SHOP_GEO_KEY = "shop:geo:";

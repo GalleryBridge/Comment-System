@@ -20,6 +20,7 @@ import javax.annotation.Resource;
 import javax.servlet.http.HttpSession;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
@@ -65,7 +66,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
         if (RegexUtils.isPhoneInvalid(phone)) {
             return Result.fail("手机号码格式错误");
         }
-        //  TODO 从Redis中获取验证码
+        //  从Redis中获取验证码
         Object cacheCode = stringRedisTemplate.opsForValue().get(LOGIN_CODE_KEY + phone);
         String code = loginForm.getCode();
         //  验证码错误
@@ -79,20 +80,30 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
             //  用户不存在 保存在数据库中
             user = createUserWithPhone(phone);
         }
-        //  TODO 保存用户信息到Redis中
+        //  保存用户信息到Redis中
         String token = UUID.randomUUID().toString(true);
-        //  TODO 将User对象转为HashMap存储
+        //  将User对象转为HashMap存储
         UserDTO userDTO = BeanUtil.copyProperties(user,UserDTO.class);
         Map<String, Object> userMap = BeanUtil.beanToMap(userDTO,new HashMap<>(),
                 CopyOptions.create()
                         .setIgnoreNullValue(true)
                         .setFieldValueEditor((fieldName, fieldValue) -> fieldValue.toString()));
-        //  TODO 存储
+        //  存储
         String tokenKey = LOGIN_USER_KEY + token;
         stringRedisTemplate.opsForHash().putAll(tokenKey, userMap);
-        //  TODO 设置有效期
+        //  设置有效期
         stringRedisTemplate.expire(tokenKey,LOGIN_USER_TTL,TimeUnit.MINUTES);
         return Result.ok(token);
+    }
+
+    @Override
+    public Result logout(LoginFormDTO loginForm, HttpSession session) {
+//        stringRedisTemplate.delete(LOGIN_USER_KEY);
+//        String token = session.getAttribute("token").toString();
+//        System.out.println(token);
+//        session.removeAttribute(LOGIN_USER_KEY+token);
+//        stringRedisTemplate.delete(LOGIN_USER_KEY+token);
+        return null;
     }
 
     private User createUserWithPhone(String phone){
